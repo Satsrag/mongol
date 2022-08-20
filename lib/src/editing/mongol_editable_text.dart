@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui hide TextStyle;
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show DragStartBehavior;
@@ -231,6 +232,7 @@ class MongolEditableText extends StatefulWidget {
       selectAll: true,
     ),
     this.autofillHints,
+    this.autofillClient,
     this.clipBehavior = Clip.hardEdge,
     this.restorationId,
     this.scrollBehavior,
@@ -861,6 +863,12 @@ class MongolEditableText extends StatefulWidget {
   ///   <https://developer.apple.com/documentation/safariservices/supporting_associated_domains_in_your_app>.
   final Iterable<String>? autofillHints;
 
+  /// The [AutofillClient] that controls this input field's autofill behavior.
+  ///
+  /// When null, this widget's [MongolEditableTextState] will be used as the
+  /// [AutofillClient]. This property may override [autofillHints].
+  final AutofillClient? autofillClient;
+
   /// The content will be clipped (or not) according to this option.
   ///
   /// See the enum [Clip] for details of all possible options and their common
@@ -1130,6 +1138,8 @@ class MongolEditableTextState extends State<MongolEditableText>
   @override
   AutofillScope? get currentAutofillScope => _currentAutofillScope;
 
+  AutofillClient get _effectiveAutofillClient => widget.autofillClient ?? this;
+
   // Is this field in the current autofill context.
   bool _isInAutofillContext = false;
 
@@ -1209,7 +1219,7 @@ class MongolEditableTextState extends State<MongolEditableText>
 
     if (!_didAutoFocus && widget.autofocus) {
       _didAutoFocus = true;
-      SchedulerBinding.instance!.addPostFrameCallback((_) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           FocusScope.of(context).autofocus(widget.focusNode);
         }
@@ -1298,7 +1308,7 @@ class MongolEditableTextState extends State<MongolEditableText>
     _selectionOverlay = null;
     _focusAttachment!.detach();
     widget.focusNode.removeListener(_handleFocusChanged);
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     _clipboardStatus?.removeListener(_onChangedClipboardStatus);
     _clipboardStatus?.dispose();
     super.dispose();
@@ -1593,11 +1603,8 @@ class MongolEditableTextState extends State<MongolEditableText>
       // notified to exclude this field from the autofill context. So we need to
       // provide the autofillId.
       _textInputConnection = _needsAutofill && currentAutofillScope != null
-          ? currentAutofillScope!.attach(this, textInputConfiguration)
-          : TextInput.attach(
-              this,
-              _createTextInputConfiguration(
-                  _isInAutofillContext || _needsAutofill));
+          ? currentAutofillScope!.attach(this, _effectiveAutofillClient.textInputConfiguration)
+          : TextInput.attach(this, _effectiveAutofillClient.textInputConfiguration);
       _textInputConnection!.show();
       _updateSizeAndTransform();
       _updateComposingRectIfNeeded();
@@ -1752,7 +1759,7 @@ class MongolEditableTextState extends State<MongolEditableText>
       return;
     }
     _showCaretOnScreenScheduled = true;
-    SchedulerBinding.instance!.addPostFrameCallback((Duration _) {
+    SchedulerBinding.instance.addPostFrameCallback((Duration _) {
       _showCaretOnScreenScheduled = false;
       if (_currentCaretRect == null || !_scrollController!.hasClients) {
         return;
@@ -1807,16 +1814,16 @@ class MongolEditableTextState extends State<MongolEditableText>
   @override
   void didChangeMetrics() {
     if (_lastBottomViewInset !=
-        WidgetsBinding.instance!.window.viewInsets.bottom) {
-      SchedulerBinding.instance!.addPostFrameCallback((Duration _) {
+        WidgetsBinding.instance.window.viewInsets.bottom) {
+      SchedulerBinding.instance.addPostFrameCallback((Duration _) {
         _selectionOverlay?.updateForScroll();
       });
       if (_lastBottomViewInset <
-          WidgetsBinding.instance!.window.viewInsets.bottom) {
+          WidgetsBinding.instance.window.viewInsets.bottom) {
         _scheduleShowCaretOnScreen();
       }
     }
-    _lastBottomViewInset = WidgetsBinding.instance!.window.viewInsets.bottom;
+    _lastBottomViewInset = WidgetsBinding.instance.window.viewInsets.bottom;
   }
 
   @pragma('vm:notify-debugger-on-exception')
@@ -1979,8 +1986,8 @@ class MongolEditableTextState extends State<MongolEditableText>
     _updateOrDisposeSelectionOverlayIfNeeded();
     if (_hasFocus) {
       // Listen for changing viewInsets, which indicates keyboard showing up.
-      WidgetsBinding.instance!.addObserver(this);
-      _lastBottomViewInset = WidgetsBinding.instance!.window.viewInsets.bottom;
+      WidgetsBinding.instance.addObserver(this);
+      _lastBottomViewInset = WidgetsBinding.instance.window.viewInsets.bottom;
       if (!widget.readOnly) {
         _scheduleShowCaretOnScreen();
       }
@@ -1990,7 +1997,7 @@ class MongolEditableTextState extends State<MongolEditableText>
             TextSelection.collapsed(offset: _value.text.length), null);
       }
     } else {
-      WidgetsBinding.instance!.removeObserver(this);
+      WidgetsBinding.instance.removeObserver(this);
       // Clear the selection and composition state if this widget lost focus.
       _value = TextEditingValue(text: _value.text);
     }
@@ -2002,7 +2009,7 @@ class MongolEditableTextState extends State<MongolEditableText>
       final size = renderEditable.size;
       final transform = renderEditable.getTransformTo(null);
       _textInputConnection!.setEditableSizeAndTransform(size, transform);
-      SchedulerBinding.instance!
+      SchedulerBinding.instance
           .addPostFrameCallback((Duration _) => _updateSizeAndTransform());
     }
   }
@@ -2026,7 +2033,7 @@ class MongolEditableTextState extends State<MongolEditableText>
             renderEditable.getLocalRectForCaret(TextPosition(offset: offset));
       }
       _textInputConnection!.setComposingRect(composingRect);
-      SchedulerBinding.instance!
+      SchedulerBinding.instance
           .addPostFrameCallback((Duration _) => _updateComposingRectIfNeeded());
     }
   }
@@ -2042,7 +2049,7 @@ class MongolEditableTextState extends State<MongolEditableText>
             renderEditable.getLocalRectForCaret(currentTextPosition);
         _textInputConnection!.setCaretRect(caretRect);
       }
-      SchedulerBinding.instance!
+      SchedulerBinding.instance
           .addPostFrameCallback((Duration _) => _updateCaretRectIfNeeded());
     }
   }
@@ -2127,33 +2134,64 @@ class MongolEditableTextState extends State<MongolEditableText>
   @override
   String get autofillId => 'MongolEditableText-$hashCode';
 
-  TextInputConfiguration _createTextInputConfiguration(
-      bool needsAutofillConfiguration) {
+  // TextInputConfiguration _createTextInputConfiguration(
+  //     bool needsAutofillConfiguration) {
+  //   return TextInputConfiguration(
+  //     inputType: widget.keyboardType,
+  //     readOnly: widget.readOnly,
+  //     obscureText: widget.obscureText,
+  //     autocorrect: widget.autocorrect,
+  //     enableSuggestions: widget.enableSuggestions,
+  //     inputAction: widget.textInputAction ??
+  //         (widget.keyboardType == TextInputType.multiline
+  //             ? TextInputAction.newline
+  //             : TextInputAction.done),
+  //     keyboardAppearance: widget.keyboardAppearance,
+  //     autofillConfiguration: !needsAutofillConfiguration
+  //         ? null
+  //         : AutofillConfiguration(
+  //             uniqueIdentifier: autofillId,
+  //             autofillHints:
+  //                 widget.autofillHints?.toList(growable: false) ?? <String>[],
+  //             currentEditingValue: currentTextEditingValue,
+  //           ),
+  //   );
+  // }
+
+  // @override
+  // TextInputConfiguration get textInputConfiguration {
+  //   return _createTextInputConfiguration(_needsAutofill);
+  // }
+
+  @override
+  TextInputConfiguration get textInputConfiguration {
+    final List<String>? autofillHints = widget.autofillHints?.toList(growable: false);
+    final AutofillConfiguration autofillConfiguration = autofillHints != null
+        ? AutofillConfiguration(
+      uniqueIdentifier: autofillId,
+      autofillHints: autofillHints,
+      currentEditingValue: currentTextEditingValue,
+    )
+        : AutofillConfiguration.disabled;
+
     return TextInputConfiguration(
       inputType: widget.keyboardType,
       readOnly: widget.readOnly,
       obscureText: widget.obscureText,
       autocorrect: widget.autocorrect,
+      // smartDashesType: widget.smartDashesType,
+      // smartQuotesType: widget.smartQuotesType,
       enableSuggestions: widget.enableSuggestions,
-      inputAction: widget.textInputAction ??
-          (widget.keyboardType == TextInputType.multiline
-              ? TextInputAction.newline
-              : TextInputAction.done),
+      // enableInteractiveSelection: widget._userSelectionEnabled,
+      inputAction: widget.textInputAction ?? (widget.keyboardType == TextInputType.multiline
+          ? TextInputAction.newline
+          : TextInputAction.done
+      ),
+      // textCapitalization: widget.textCapitalization,
       keyboardAppearance: widget.keyboardAppearance,
-      autofillConfiguration: !needsAutofillConfiguration
-          ? null
-          : AutofillConfiguration(
-              uniqueIdentifier: autofillId,
-              autofillHints:
-                  widget.autofillHints?.toList(growable: false) ?? <String>[],
-              currentEditingValue: currentTextEditingValue,
-            ),
+      autofillConfiguration: autofillConfiguration,
+      // enableIMEPersonalizedLearning: widget.enableIMEPersonalizedLearning,
     );
-  }
-
-  @override
-  TextInputConfiguration get textInputConfiguration {
-    return _createTextInputConfiguration(_needsAutofill);
   }
 
   @override
@@ -2288,6 +2326,42 @@ class MongolEditableTextState extends State<MongolEditableText>
       style: widget.style,
       withComposing: !widget.readOnly,
     );
+  }
+
+  @override
+  void autofill(TextEditingValue newEditingValue) {
+    // TODO: implement autofill
+  }
+
+  @override
+  void copySelection(SelectionChangedCause cause) {
+    // TODO: implement copySelection
+  }
+
+  @override
+  void cutSelection(SelectionChangedCause cause) {
+    // TODO: implement cutSelection
+  }
+
+  @override
+  void insertTextPlaceholder(Size size) {
+    // TODO: implement insertTextPlaceholder
+  }
+
+  @override
+  Future<void> pasteText(SelectionChangedCause cause) {
+    // TODO: implement pasteText
+    throw UnimplementedError();
+  }
+
+  @override
+  void removeTextPlaceholder() {
+    // TODO: implement removeTextPlaceholder
+  }
+
+  @override
+  void selectAll(SelectionChangedCause cause) {
+    // TODO: implement selectAll
   }
 }
 

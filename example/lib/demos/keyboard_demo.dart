@@ -48,15 +48,17 @@ class _BodyWidgetState extends State<BodyWidget> {
                 fontSize: 24,
               ),
               showCursor: true,
-              readOnly: true,
+              // readOnly: true,
             ),
           ),
         ),
         Align(
           alignment: Alignment.bottomCenter,
-          child: MongolKeyboard(
-            onTextInput: _insertText,
-            onBackspace: _backspace,
+          child: TextFieldTapRegion(
+            child: MongolKeyboard(
+              onTextInput: _insertText,
+              onBackspace: _backspace,
+            ),
           ),
         ),
       ],

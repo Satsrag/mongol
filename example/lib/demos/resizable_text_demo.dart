@@ -11,7 +11,7 @@ class _ResizableTextDemoState extends State<ResizableTextDemo> {
   static const originalHeight = 200.0;
   double height = originalHeight;
   double scaledHeight = originalHeight;
-  double scale = 1.0;
+  TextScaler scaler = TextScaler.noScaling;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class _ResizableTextDemoState extends State<ResizableTextDemo> {
               child: MongolText(
                 text,
                 style: const TextStyle(fontSize: 30),
-                textScaleFactor: scale,
+                textScaler: scaler,
               ),
             ),
             _scaleBoxRed(),
@@ -45,7 +45,7 @@ class _ResizableTextDemoState extends State<ResizableTextDemo> {
         onVerticalDragUpdate: (details) {
           setState(() {
             height += details.delta.dy;
-            scale = (height) / scaledHeight;
+            scaler = TextScaler.linear((height) / scaledHeight);
           });
         },
         child: Container(
@@ -67,7 +67,8 @@ class _ResizableTextDemoState extends State<ResizableTextDemo> {
           });
         },
         onVerticalDragEnd: (details) {
-          scaledHeight = height / scale;
+          // todo: this is not working
+          // scaledHeight = height / scale;
         },
         child: Container(
           color: Colors.green,

@@ -74,7 +74,7 @@ class MongolRichText extends LeafRenderObjectWidget {
     this.textAlign = MongolTextAlign.top,
     this.softWrap = true,
     this.overflow = TextOverflow.clip,
-    this.textScaleFactor = 1.0,
+    this.textScaler = TextScaler.noScaling,
     this.maxLines,
   })  : assert(maxLines == null || maxLines > 0),
         super(key: key);
@@ -87,18 +87,15 @@ class MongolRichText extends LeafRenderObjectWidget {
 
   /// Whether the text should break at soft line breaks.
   ///
-  /// If false, the glyphs in the text will be positioned as if there was 
+  /// If false, the glyphs in the text will be positioned as if there was
   /// unlimited vertical space.
   final bool softWrap;
 
   /// How visual overflow should be handled.
   final TextOverflow overflow;
 
-  /// The number of font pixels for each logical pixel.
-  ///
-  /// For example, if the text scale factor is 1.5, text will be 50% larger than
-  /// the specified font size.
-  final double textScaleFactor;
+  /// {@macro flutter.painting.textPainter.textScaler}
+  final TextScaler textScaler;
 
   /// An optional maximum number of lines for the text to span, wrapping if
   /// necessary. If the text exceeds the given number of lines, it will be
@@ -115,7 +112,7 @@ class MongolRichText extends LeafRenderObjectWidget {
       textAlign: textAlign,
       softWrap: softWrap,
       overflow: overflow,
-      textScaleFactor: textScaleFactor,
+      textScaler: textScaler,
       maxLines: maxLines,
     );
   }
@@ -128,7 +125,7 @@ class MongolRichText extends LeafRenderObjectWidget {
       ..textAlign = textAlign
       ..softWrap = softWrap
       ..overflow = overflow
-      ..textScaleFactor = textScaleFactor
+      ..textScaler = textScaler
       ..maxLines = maxLines;
   }
 
@@ -138,13 +135,15 @@ class MongolRichText extends LeafRenderObjectWidget {
     properties.add(StringProperty('text', text.toPlainText()));
     properties.add(EnumProperty<MongolTextAlign>('textAlign', textAlign,
         defaultValue: MongolTextAlign.top));
-    properties.add(FlagProperty('softWrap', value: softWrap, ifTrue: 'wrapping at box height', ifFalse: 'no wrapping except at line break characters', showName: true));
+    properties.add(FlagProperty('softWrap',
+        value: softWrap,
+        ifTrue: 'wrapping at box height',
+        ifFalse: 'no wrapping except at line break characters',
+        showName: true));
     properties.add(EnumProperty<TextOverflow>('overflow', overflow,
         defaultValue: TextOverflow.clip));
-    properties.add(
-        DoubleProperty('textScaleFactor', textScaleFactor, defaultValue: 1.0));
+    properties.add(DiagnosticsProperty<TextScaler>('textScaler', textScaler,
+        defaultValue: TextScaler.noScaling));
     properties.add(IntProperty('maxLines', maxLines, ifNull: 'unlimited'));
   }
 }
-
-

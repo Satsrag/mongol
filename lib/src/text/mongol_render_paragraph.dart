@@ -31,7 +31,7 @@ class MongolRenderParagraph extends RenderBox
     MongolTextAlign textAlign = MongolTextAlign.top,
     bool softWrap = true,
     TextOverflow overflow = TextOverflow.clip,
-    double textScaleFactor = 1.0,
+    TextScaler textScaler = TextScaler.noScaling,
     int? maxLines,
   })  : assert(maxLines == null || maxLines > 0),
         _softWrap = softWrap,
@@ -39,7 +39,7 @@ class MongolRenderParagraph extends RenderBox
         _textPainter = MongolTextPainter(
           text: text,
           textAlign: textAlign,
-          textScaleFactor: textScaleFactor,
+          textScaler: textScaler,
           maxLines: maxLines,
           ellipsis: overflow == TextOverflow.ellipsis ? _kEllipsis : null,
         );
@@ -110,14 +110,14 @@ class MongolRenderParagraph extends RenderBox
     markNeedsLayout();
   }
 
-  /// The number of font pixels for each logical pixel.
-  ///
-  /// For example, if the text scale factor is 1.5, text will be 50% larger than
-  /// the specified font size.
-  double get textScaleFactor => _textPainter.textScaleFactor;
-  set textScaleFactor(double value) {
-    if (_textPainter.textScaleFactor == value) return;
-    _textPainter.textScaleFactor = value;
+  /// {@macro flutter.painting.textPainter.textScaler}
+  TextScaler get textScaler => _textPainter.textScaler;
+  set textScaler(TextScaler value) {
+    if (_textPainter.textScaler == value) {
+      return;
+    }
+    _textPainter.textScaler = value;
+    _overflowShader = null;
     markNeedsLayout();
   }
 
@@ -255,7 +255,7 @@ class MongolRenderParagraph extends RenderBox
           _needsClipping = true;
           final fadeSizePainter = MongolTextPainter(
             text: TextSpan(style: _textPainter.text!.style, text: '\u2026'),
-            textScaleFactor: textScaleFactor,
+            textScaler: textScaler,
           )..layout();
           if (didOverflowWidth) {
             double fadeEnd, fadeStart;
@@ -340,8 +340,8 @@ class MongolRenderParagraph extends RenderBox
       showName: true,
     ));
     properties.add(EnumProperty<TextOverflow>('overflow', overflow));
-    properties.add(
-        DoubleProperty('textScaleFactor', textScaleFactor, defaultValue: 1.0));
+    properties.add(DiagnosticsProperty<TextScaler>('textScaler', textScaler,
+        defaultValue: TextScaler.noScaling));
     properties.add(IntProperty('maxLines', maxLines, ifNull: 'unlimited'));
   }
 }

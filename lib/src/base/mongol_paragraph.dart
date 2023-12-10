@@ -889,18 +889,18 @@ class MongolParagraphBuilder {
   MongolParagraphBuilder(
     ui.ParagraphStyle style, {
     MongolTextAlign textAlign = MongolTextAlign.top,
-    double textScaleFactor = 1.0,
+    TextScaler textScaler = TextScaler.noScaling,
     int? maxLines,
     String? ellipsis,
   })  : _paragraphStyle = style,
         _textAlign = textAlign,
-        _textScaleFactor = textScaleFactor,
+        _textScale = textScaler,
         _maxLines = maxLines,
         _ellipsis = ellipsis;
 
   ui.ParagraphStyle? _paragraphStyle;
   final MongolTextAlign _textAlign;
-  final double _textScaleFactor;
+  final TextScaler _textScale;
   final int? _maxLines;
   final String? _ellipsis;
 
@@ -1024,7 +1024,7 @@ class MongolParagraphBuilder {
 
   ui.TextStyle _uiStyleForRun(int index) {
     final style = _rawStyledTextRuns[index].style;
-    return style?.getTextStyle(textScaleFactor: _textScaleFactor) ??
+    return style?.getTextStyle(textScaler: _textScale) ??
         _defaultTextStyle;
   }
 

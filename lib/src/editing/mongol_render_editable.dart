@@ -209,7 +209,7 @@ class MongolRenderEditable extends RenderBox
     int? minLines,
     bool expands = false,
     Color? selectionColor,
-    double textScaleFactor = 1.0,
+    TextScaler textScaler = TextScaler.noScaling,
     TextSelection? selection,
     required ViewportOffset offset,
     this.ignorePointer = false,
@@ -243,7 +243,7 @@ class MongolRenderEditable extends RenderBox
         _textPainter = MongolTextPainter(
           text: text,
           textAlign: textAlign,
-          textScaleFactor: textScaleFactor,
+          textScaler: textScaler,
           maxLines: maxLines == 1 ? 1 : null,
         ),
         _showCursor = showCursor ?? ValueNotifier<bool>(false),
@@ -900,15 +900,13 @@ class MongolRenderEditable extends RenderBox
     _selectionPainter.highlightColor = value;
   }
 
-  /// The number of font pixels for each logical pixel.
-  ///
-  /// For example, if the text scale factor is 1.5, text will be 50% larger than
-  /// the specified font size.
-  double get textScaleFactor => _textPainter.textScaleFactor;
-
-  set textScaleFactor(double value) {
-    if (_textPainter.textScaleFactor == value) return;
-    _textPainter.textScaleFactor = value;
+  /// {@macro flutter.painting.textPainter.textScaler}
+  TextScaler get textScaler => _textPainter.textScaler;
+  set textScaler(TextScaler value) {
+    if (_textPainter.textScaler == value) {
+      return;
+    }
+    _textPainter.textScaler = value;
     markNeedsTextLayout();
   }
 
@@ -2193,7 +2191,7 @@ class MongolRenderEditable extends RenderBox
     properties.add(
         DiagnosticsProperty<bool>('expands', expands, defaultValue: false));
     properties.add(ColorProperty('selectionColor', selectionColor));
-    properties.add(DoubleProperty('textScaleFactor', textScaleFactor));
+    properties.add(DiagnosticsProperty<TextScaler>('textScaler', textScaler, defaultValue: TextScaler.noScaling));
     properties.add(DiagnosticsProperty<TextSelection>('selection', selection));
     properties.add(DiagnosticsProperty<ViewportOffset>('offset', offset));
   }

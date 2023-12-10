@@ -27,7 +27,8 @@ import 'package:flutter/widgets.dart'
         ErrorSummary,
         TextDirection,
         TextBaseline,
-        TextAffinity;
+        TextAffinity,
+        TextScaler;
 import 'package:mongol/src/base/mongol_paragraph.dart';
 
 import 'mongol_text_align.dart';
@@ -104,14 +105,14 @@ class MongolTextPainter {
   MongolTextPainter({
     TextSpan? text,
     MongolTextAlign textAlign = MongolTextAlign.top,
-    double textScaleFactor = 1.0,
+    TextScaler textScaler = TextScaler.noScaling,
     int? maxLines,
     String? ellipsis,
   })  : assert(text == null || text.debugAssertIsValid()),
         assert(maxLines == null || maxLines > 0),
         _text = text,
         _textAlign = textAlign,
-        _textScaleFactor = textScaleFactor,
+        _textScaler = textScaler,
         _maxLines = maxLines,
         _ellipsis = ellipsis;
 
@@ -126,7 +127,7 @@ class MongolTextPainter {
   static double computeWidth({
     required TextSpan text,
     MongolTextAlign textAlign = MongolTextAlign.top,
-    double textScaleFactor = 1.0,
+    TextScaler textScaler = TextScaler.noScaling,
     int? maxLines,
     String? ellipsis,
     double minHeight = 0.0,
@@ -135,7 +136,7 @@ class MongolTextPainter {
     final MongolTextPainter painter = MongolTextPainter(
       text: text,
       textAlign: textAlign,
-      textScaleFactor: textScaleFactor,
+      textScaler: textScaler,
       maxLines: maxLines,
       ellipsis: ellipsis,
     )..layout(minHeight: minHeight, maxHeight: maxHeight);
@@ -158,7 +159,7 @@ class MongolTextPainter {
   static double computeMaxIntrinsicHeight({
     required TextSpan text,
     MongolTextAlign textAlign = MongolTextAlign.top,
-    double textScaleFactor = 1.0,
+    TextScaler textScaler = TextScaler.noScaling,
     int? maxLines,
     String? ellipsis,
     double minHeight = 0.0,
@@ -167,7 +168,7 @@ class MongolTextPainter {
     final MongolTextPainter painter = MongolTextPainter(
       text: text,
       textAlign: textAlign,
-      textScaleFactor: textScaleFactor,
+      textScaler: textScaler,
       maxLines: maxLines,
       ellipsis: ellipsis,
     )..layout(minHeight: minHeight, maxHeight: maxHeight);
@@ -291,19 +292,24 @@ class MongolTextPainter {
     markNeedsLayout();
   }
 
-  /// The number of font pixels for each logical pixel.
+  /// {@template flutter.painting.textPainter.textScaler}
+  /// The font scaling strategy to use when laying out and rendering the text.
   ///
-  /// For example, if the text scale factor is 1.5, text will be 50% larger than
-  /// the specified font size.
+  /// The value usually comes from [MediaQuery.textScalerOf], which typically
+  /// reflects the user-specified text scaling value in the platform's
+  /// accessibility settings. The [TextStyle.fontSize] of the text will be
+  /// adjusted by the [TextScaler] before the text is laid out and rendered.
+  /// {@endtemplate}
   ///
-  /// After this is set, you must call [layout] before the next call to [paint].
-  double get textScaleFactor => _textScaleFactor;
-  double _textScaleFactor;
-  set textScaleFactor(double value) {
-    if (_textScaleFactor == value) {
+  /// The [layout] method must be called after [textScaler] changes as it
+  /// affects the text layout.
+  TextScaler get textScaler => _textScaler;
+  TextScaler _textScaler;
+  set textScaler(TextScaler value) {
+    if (value == _textScaler) {
       return;
     }
-    _textScaleFactor = value;
+    _textScaler = value;
     markNeedsLayout();
     _layoutTemplate?.dispose();
     _layoutTemplate = null;
@@ -362,7 +368,7 @@ class MongolTextPainter {
     return _text!.style?.getParagraphStyle(
           textAlign: TextAlign.left,
           textDirection: TextDirection.ltr,
-          textScaleFactor: textScaleFactor,
+          textScaler: textScaler,
           maxLines: maxLines,
           ellipsis: ellipsis,
           locale: null,
@@ -373,8 +379,8 @@ class MongolTextPainter {
           textDirection: TextDirection.ltr,
           // Use the default font size to multiply by as MongolRichText does not
           // perform inheriting [TextStyle]s and would otherwise
-          // fail to apply textScaleFactor.
-          fontSize: _kDefaultFontSize * textScaleFactor,
+          // fail to apply textScaler.
+          fontSize: textScaler.scale(_kDefaultFontSize) ,
           maxLines: maxLines,
           ellipsis: ellipsis,
           locale: null,
@@ -509,7 +515,7 @@ class MongolTextPainter {
     final builder = MongolParagraphBuilder(
       _createParagraphStyle(),
       textAlign: _textAlign,
-      textScaleFactor: _textScaleFactor,
+      textScaler: _textScaler,
       maxLines: _maxLines,
       ellipsis: _ellipsis,
     );

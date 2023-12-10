@@ -83,7 +83,7 @@ class MongolText extends StatelessWidget {
     this.textAlign,
     this.softWrap,
     this.overflow,
-    this.textScaleFactor,
+    this.textScaler,
     this.maxLines,
     this.semanticsLabel,
   })  : assert(
@@ -105,7 +105,7 @@ class MongolText extends StatelessWidget {
     this.textAlign,
     this.softWrap,
     this.overflow,
-    this.textScaleFactor,
+    this.textScaler,
     this.maxLines,
     this.semanticsLabel,
   })  : assert(
@@ -141,8 +141,8 @@ class MongolText extends StatelessWidget {
   /// Defaults to retrieving the value from the nearest [DefaultTextStyle] ancestor.
   final TextOverflow? overflow;
 
-  /// Font pixels per logical pixel
-  final double? textScaleFactor;
+  /// {@macro flutter.painting.textPainter.textScaler}
+  final TextScaler? textScaler;
 
   /// An optional maximum number of lines for the text to span, wrapping if
   /// necessary. If the text exceeds the given number of lines, it will be
@@ -189,7 +189,7 @@ class MongolText extends StatelessWidget {
       textAlign: textAlign ?? defaultTextAlign ?? MongolTextAlign.top,
       softWrap: softWrap ?? defaultTextStyle.softWrap,
       overflow: overflow ?? defaultTextStyle.overflow,
-      textScaleFactor: textScaleFactor ?? MediaQuery.textScaleFactorOf(context),
+      textScaler: textScaler ?? MediaQuery.textScalerOf(context),
       maxLines: maxLines ?? defaultTextStyle.maxLines,
       text: TextSpan(
         style: effectiveTextStyle,
@@ -227,8 +227,8 @@ class MongolText extends StatelessWidget {
         showName: true));
     properties.add(
         EnumProperty<TextOverflow>('overflow', overflow, defaultValue: null));
-    properties.add(
-        DoubleProperty('textScaleFactor', textScaleFactor, defaultValue: 1.0));
+    properties.add(DiagnosticsProperty<TextScaler>('textScaler', textScaler,
+        defaultValue: TextScaler.noScaling));
     properties.add(IntProperty('maxLines', maxLines, defaultValue: null));
     if (semanticsLabel != null) {
       properties.add(StringProperty('semanticsLabel', semanticsLabel));

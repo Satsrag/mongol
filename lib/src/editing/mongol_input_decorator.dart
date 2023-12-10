@@ -2037,7 +2037,7 @@ class _InputDecoratorState extends State<MongolInputDecorator>
     }
 
     final double borderWeight;
-    if (decoration!.isCollapsed ||
+    if (decoration!.isCollapsed ?? themeData.inputDecorationTheme.isCollapsed ||
         decoration?.border == InputBorder.none ||
         !decoration!.enabled) {
       borderWeight = 0.0;
@@ -2241,7 +2241,7 @@ class _InputDecoratorState extends State<MongolInputDecorator>
 
     final EdgeInsets contentPadding;
     final double floatingLabelWidth;
-    if (decoration!.isCollapsed) {
+    if (decoration!.isCollapsed ?? themeData.inputDecorationTheme.isCollapsed) {
       floatingLabelWidth = 0.0;
       contentPadding = decorationContentPadding ?? EdgeInsets.zero;
     } else if (!border.isOutline) {
@@ -2273,7 +2273,7 @@ class _InputDecoratorState extends State<MongolInputDecorator>
     final _Decorator decorator = _Decorator(
       decoration: _Decoration(
           contentPadding: contentPadding,
-          isCollapsed: decoration!.isCollapsed,
+          isCollapsed: decoration!.isCollapsed ?? themeData.inputDecorationTheme.isCollapsed,
           floatingLabelWidth: floatingLabelWidth,
           floatingLabelAlignment: decoration!.floatingLabelAlignment!,
           floatingLabelProgress: _floatingLabelController.value,

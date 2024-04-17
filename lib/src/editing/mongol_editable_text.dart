@@ -2496,13 +2496,19 @@ class MongolEditableTextState extends State<MongolEditableText>
     return selectionOverlay;
   }
 
+  /// Check that the [selection] is inside of the bounds of [text].
+  bool _isSelectionWithinTextBounds(TextSelection selection) {
+    final text = widget.controller.text;
+    return selection.start <= text.length && selection.end <= text.length;
+  }
+
   @pragma('vm:notify-debugger-on-exception')
   void _handleSelectionChanged(
       TextSelection selection, SelectionChangedCause? cause) {
     // We return early if the selection is not valid. This can happen when the
     // text of [MongolEditableText] is updated at the same time as the selection is
     // changed by a gesture event.
-    if (!widget.controller.isSelectionWithinTextBounds(selection)) return;
+    if (!_isSelectionWithinTextBounds(selection)) return;
 
     widget.controller.selection = selection;
 
